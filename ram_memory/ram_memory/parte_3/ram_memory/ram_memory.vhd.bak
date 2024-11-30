@@ -1,0 +1,87 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity RAM_fpga is
+    Port ( 
+        SW      : in  STD_LOGIC_VECTOR(9 downto 0);  -- Switches for address, data, and control
+        KEY     : in  STD_LOGIC_VECTOR(0 downto 0);  -- Key for clock
+        HEX0    : out STD_LOGIC_VECTOR(6 downto 0);  -- 7-segment for read data
+        HEX2    : out STD_LOGIC_VECTOR(6 downto 0);  -- 7-segment for input data
+        HEX4    : out STD_LOGIC_VECTOR(6 downto 0);  -- 7-segment for address (low)
+        HEX5    : out STD_LOGIC_VECTOR(6 downto 0)   -- 7-segment for address (high)
+    );
+end RAM_fpga;
+
+architecture Behavioral of RAM_fpga is
+    -- Define a 32 x 4 memory array
+    TYPE mem IS ARRAY(0 TO 31) OF STD_LOGIC_VECTOR(3 DOWNTO 0);
+    SIGNAL memory_array : mem := (others => (others => '0'));  -- Initialize to zero
+
+    -- Signals for input and output
+    signal data_in  : STD_LOGIC_VECTOR(3 downto 0);  -- Data to be written
+    signal address  : STD_LOGIC_VECTOR(4 downto 0);  -- Address
+    signal write_en : STD_LOGIC;                     -- Write enable
+    signal clk      : STD_LOGIC;                     -- Clock signal
+    signal data_out : STD_LOGIC_VECTOR(3 downto 0);  -- Data read from memory
+
+    -- Function to convert 4-bit binary to 7-segment display code
+    function bin_to_7seg(bin : STD_LOGIC_VECTOR(3 downto 0)) return STD_LOGIC_VECTOR is
+        variable seg : STD_LOGIC_VECTOR(6 downto 0);
+    begin
+        case bin is
+            when "0000" => seg := "1000000";  -- 0
+            when "0001" => seg := "1111001";  -- 1
+            when "0010" => seg := "0100100";  -- 2
+            when "0011" => seg := "0110000";  -- 3
+            when "0100" => seg := "0011001";  -- 4
+            when "0101" => seg := "0010010";  -- 5
+            when "0110" => seg := "0000010";  -- 6
+            when "0111" => seg := "1111000";  -- 7
+            when "1000" => seg := "0000000";  -- 8
+            when "1001" => seg := "0010000";  -- 9
+            when "1010" => seg := "0001000";  -- A
+            when "1011" => seg := "0000011";  -- B
+            when "1100" => seg := "1000110";  -- C
+            when "1101" => seg := "0100001";  -- D
+            when "1110" => seg := "0000110";  -- E
+            when "1111" => seg := "0001110";  -- F
+            when others => seg := "1111111";  -- Blank
+        end case;
+        return seg;
+    end function;
+
+begin
+    -- Input connections
+    data_in  <= SW(3 downto 0);       -- SW3−0 for data input
+    address  <= SW(8 downto 4);       -- SW8−4 for address input
+    write_en <= SW(9);                -- SW9 as write enable
+    clk      <= KEY(0);               -- KEY0 as clock input
+
+    -- RAM write process (synchronous with clock)
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if write_en = '1' then
+                memory_array(to_integer(unsigned(address))) <= data_in;
+            end if;
+            -- Read data from memory
+            data_out <= memory_array(to_integer(unsigned(address)));
+        end if;
+    end process;
+
+    -- Display the high bit of address on HEX5 (either 0 or 1)
+    HEX5 <= bin_to_7seg("000" & address(4));
+
+    -- Display the lower 4 bits of the address on HEX4
+    HEX4 <= bin_to_7seg(address(3 downto 0));
+
+    -- Display the input data on HEX2
+    HEX2 <= bin_to_7seg(data_in);
+
+    -- Display the output data from memory on HEX0
+    HEX0 <= bin_to_7seg(data_out);
+
+end Behavioral;
+

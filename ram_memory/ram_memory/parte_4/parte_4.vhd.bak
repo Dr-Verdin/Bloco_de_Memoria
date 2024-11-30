@@ -1,0 +1,100 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity word is
+    Port (
+        CLOCK_50 : in STD_LOGIC;        -- Clock de 50 MHz
+        KEY0     : in STD_LOGIC;        -- Botão de reset
+        SW       : in STD_LOGIC_VECTOR (8 downto 0); -- SW8-4 para endereços de escrita e SW3-0 para dados
+        HEX0     : out STD_LOGIC_VECTOR (6 downto 0); -- Dado lido (4 bits) em hexadecimal
+        HEX1     : out STD_LOGIC_VECTOR (6 downto 0); -- Dado de escrita (4 bits) em hexadecimal
+        HEX3     : out STD_LOGIC_VECTOR (6 downto 0); -- Parte alta do endereço de leitura em hexadecimal
+        HEX2     : out STD_LOGIC_VECTOR (6 downto 0); -- Parte baixa do endereço de leitura em hexadecimal
+        HEX5     : out STD_LOGIC_VECTOR (6 downto 0); -- Parte alta do endereço de escrita em hexadecimal
+        HEX4     : out STD_LOGIC_VECTOR (6 downto 0)  -- Parte baixa do endereço de escrita em hexadecimal
+    );
+end word;
+
+architecture Behavioral of word is
+    -- Sinais para RAM e contagem
+    signal read_addr  : STD_LOGIC_VECTOR (4 downto 0) := (others => '0');
+    signal write_addr : STD_LOGIC_VECTOR (4 downto 0);
+    signal write_data : STD_LOGIC_VECTOR (3 downto 0);
+    signal read_data  : STD_LOGIC_VECTOR (3 downto 0);
+
+    -- Sinal para o temporizador de 1 segundo
+    signal T_1s : STD_LOGIC;
+
+    -- Instancia o módulo de RAM dual-port gerado
+    component ram32x4
+        port (
+            clock      : in  STD_LOGIC;
+            data       : in  STD_LOGIC_VECTOR (3 downto 0); -- Dados de escrita
+            rdaddress  : in  STD_LOGIC_VECTOR (4 downto 0); -- Endereço de leitura
+            wraddress  : in  STD_LOGIC_VECTOR (4 downto 0); -- Endereço de escrita
+            wren       : in  STD_LOGIC;                    -- Habilitação de escrita
+            q          : out STD_LOGIC_VECTOR (3 downto 0)  -- Dados lidos
+        );
+    end component;
+
+    -- Componentes adicionais para contador e displays
+    component contador_um_segundo
+        Port (
+            Clk : in STD_LOGIC;
+            T   : out STD_LOGIC 
+        );
+    end component;
+
+    component display
+        Port (
+            binary_in : in  STD_LOGIC_VECTOR (3 downto 0);
+            seg       : out STD_LOGIC_VECTOR (6 downto 0)
+        );
+    end component;
+
+begin
+    -- Instancia o temporizador de 1 segundo
+    U1: contador_um_segundo
+        Port map (
+            Clk => CLOCK_50,
+            T   => T_1s
+        );
+
+    -- Incrementa o contador de endereços a cada segundo
+    process(CLOCK_50, KEY0)
+    begin
+        if KEY0 = '1' then
+            read_addr <= (others => '0');
+        elsif rising_edge(CLOCK_50) then
+            if T_1s = '1' then
+                read_addr <= std_logic_vector(unsigned(read_addr) + 1);
+            end if;
+        end if;
+    end process;
+
+    -- Conecta os switches de endereço e dado de escrita
+    write_addr <= SW(8 downto 4);
+    write_data <= SW(3 downto 0);
+
+    -- Instancia a RAM dual-port
+    U2: ram32x4
+        Port map (
+            clock     => CLOCK_50,
+            data      => write_data,
+            rdaddress => read_addr,
+            wraddress => write_addr,
+            wren      => '1',            -- Habilita a escrita sempre
+            q         => read_data
+        );
+
+    -- Exibe os dados e endereços nos displays
+    U3: display Port map (binary_in => read_data, seg => HEX0); -- Dado lido
+    U4: display Port map (binary_in => write_data, seg => HEX1); -- Dado de escrita
+    U5: display Port map (binary_in => read_addr(3 downto 0), seg => HEX2); -- Endereço de leitura (4 bits)
+    U6: display Port map (binary_in => read_addr(4 downto 4) & "000", seg => HEX3); -- Endereço de leitura parte alta
+    U7: display Port map (binary_in => write_addr(3 downto 0), seg => HEX4); -- Endereço de escrita (4 bits)
+    U8: display Port map (binary_in => write_addr(4 downto 4) & "000", seg => HEX5); -- Endereço de escrita parte alta
+
+end Behavioral;
+

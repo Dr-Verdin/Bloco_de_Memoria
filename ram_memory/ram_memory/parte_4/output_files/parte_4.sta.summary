@@ -1,0 +1,77 @@
+------------------------------------------------------------
+Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow 1200mV 85C Model Setup 'CLOCK_50'
+Slack : -2.436
+TNS   : -60.439
+
+Type  : Slow 1200mV 85C Model Setup 'contador_um_segundo:U1|T'
+Slack : -0.871
+TNS   : -3.305
+
+Type  : Slow 1200mV 85C Model Hold 'contador_um_segundo:U1|T'
+Slack : 0.450
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'CLOCK_50'
+Slack : 0.555
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'CLOCK_50'
+Slack : -3.000
+TNS   : -54.892
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'contador_um_segundo:U1|T'
+Slack : -1.285
+TNS   : -6.425
+
+Type  : Slow 1200mV 0C Model Setup 'CLOCK_50'
+Slack : -2.102
+TNS   : -50.675
+
+Type  : Slow 1200mV 0C Model Setup 'contador_um_segundo:U1|T'
+Slack : -0.687
+TNS   : -2.458
+
+Type  : Slow 1200mV 0C Model Hold 'contador_um_segundo:U1|T'
+Slack : 0.404
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'CLOCK_50'
+Slack : 0.493
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'CLOCK_50'
+Slack : -3.000
+TNS   : -54.716
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'contador_um_segundo:U1|T'
+Slack : -1.285
+TNS   : -6.425
+
+Type  : Fast 1200mV 0C Model Setup 'CLOCK_50'
+Slack : -0.706
+TNS   : -13.950
+
+Type  : Fast 1200mV 0C Model Setup 'contador_um_segundo:U1|T'
+Slack : 0.095
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'contador_um_segundo:U1|T'
+Slack : 0.205
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'CLOCK_50'
+Slack : 0.256
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'CLOCK_50'
+Slack : -3.000
+TNS   : -41.817
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'contador_um_segundo:U1|T'
+Slack : -1.000
+TNS   : -5.000
+
+------------------------------------------------------------

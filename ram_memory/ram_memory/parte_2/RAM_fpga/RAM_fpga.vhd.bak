@@ -1,0 +1,65 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity RAM_fpga is
+    Port ( 
+        SW      : in  STD_LOGIC_VECTOR(9 downto 0);  -- Switches
+        KEY     : in  STD_LOGIC_VECTOR(0 downto 0);  -- Key for clock
+        HEX0    : out STD_LOGIC_VECTOR(6 downto 0);  -- 7-segment for read data
+        HEX2    : out STD_LOGIC_VECTOR(6 downto 0);  -- 7-segment for input data
+        HEX4    : out STD_LOGIC_VECTOR(6 downto 0);  -- 7-segment for address (low)
+        HEX5    : out STD_LOGIC_VECTOR(6 downto 0)   -- 7-segment for address (high)
+    );
+end RAM_fpga;
+
+architecture Behavioral of RAM_fpga is
+
+    signal data_in  : STD_LOGIC_VECTOR(3 downto 0);  -- Data to be written
+    signal address  : STD_LOGIC_VECTOR(4 downto 0);  -- Address
+    signal write_en : STD_LOGIC;                     -- Write enable
+    signal clk      : STD_LOGIC;                     -- Clock signal
+    signal data_out : STD_LOGIC_VECTOR(3 downto 0);  -- Data read from memory
+    
+    -- RAM instantiation (32x4 RAM)
+    component ram32x4
+        Port ( 
+            address : in STD_LOGIC_VECTOR(4 downto 0);
+            data    : in STD_LOGIC_VECTOR(3 downto 0);
+            we      : in STD_LOGIC;
+            clk     : in STD_LOGIC;
+            q       : out STD_LOGIC_VECTOR(3 downto 0)
+        );
+    end component;
+
+begin
+
+    -- Input connections
+    data_in  <= SW(3 downto 0);      -- SW3−0 for data input
+    address  <= SW(8 downto 4);      -- SW8−4 for address input
+    write_en <= SW(9);               -- SW9 as write enable
+    clk      <= KEY(0);              -- KEY0 as clock input
+
+    -- RAM instantiation
+    ram_instance : ram32x4
+        Port map (
+            address => address,
+            data    => data_in,
+            we      => write_en,
+            clk     => clk,
+            q       => data_out
+        );
+
+    -- Display address on HEX5-4
+    HEX5 <= conv_std_logic_vector(address(4 downto 4), 7);  -- HEX5 shows the upper address bit
+    HEX4 <= conv_std_logic_vector(address(3 downto 0), 7);  -- HEX4 shows the lower 4 bits of the address
+
+    -- Display input data on HEX2
+    HEX2 <= conv_std_logic_vector(data_in, 7);
+
+    -- Display output data on HEX0
+    HEX0 <= conv_std_logic_vector(data_out, 7);
+
+end Behavioral;
+
